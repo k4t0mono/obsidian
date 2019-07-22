@@ -2,8 +2,8 @@
 extern crate clap;
 extern crate simplelog;
 mod config;
+mod deck;
 
-use config::Config;
 
 fn set_logger(level: u64) {
     use simplelog::*;
@@ -38,6 +38,9 @@ fn main() {
 
     set_logger(matches.occurrences_of("verbose"));
 
-    let c = Config::loads();
+    let c = config::Config::loads();
     println!("{:?}", c);
+
+    let d = deck::Deck::loads(c.get_deck(0));
+    println!("{:#?}", d);
 }

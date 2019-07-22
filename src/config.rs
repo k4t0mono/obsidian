@@ -1,25 +1,34 @@
-#![allow(dead_code)]
-
 use serde::{Serialize, Deserialize};
+
+const CFG_DIR: &'static str = "config/";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    test: String,
+    daily: bool,
+    reverse: bool,
+    decks: Vec<String>,
 }
 
 impl Config {
 
-    pub fn new(test: String) -> Config {
-        Config { test }
+    pub fn get_deck(&self, i: usize) -> &String {
+        self.decks.get(i).unwrap()
     }
 
     pub fn loads() -> Config {
-        Config::read().unwrap_or(Config::create())
+        let cfg = match Config::read() {
+            Ok(c) => c,
+            Err(_) => Config::create(),
+        };
+
+        cfg
     }
 
     fn create() -> Config {
         let c = Config {
-            test: "auto hewo".to_string()
+            daily: true,
+            reverse: false,
+            decks: vec!(),
         };
 
         c.write().unwrap();
@@ -31,7 +40,7 @@ impl Config {
         use std::fs::File;
         use std::io::prelude::*;
 
-        let mut file = File::open("cfg.toml")?;
+        let mut file = File::open(format!("{}/cfg.toml", CFG_DIR))?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
 
@@ -41,10 +50,11 @@ impl Config {
     }
 
     fn write(&self) -> std::io::Result<()> {
+        info!("Config file not found, creating a new one");
         use std::fs::File;
         use std::io::prelude::*;
 
-        let mut file = File::create("cfg.toml")?;
+        let mut file = File::create(format!("{}/cfg.toml", CFG_DIR))?;
 
         let t = toml::to_string(&self).unwrap();
         file.write_all(t.as_bytes())?;
